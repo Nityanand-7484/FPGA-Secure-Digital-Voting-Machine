@@ -283,7 +283,7 @@ The self-checking testbench (`tb/voting_machine_tb.v`) verifies 7 key functional
 | **T6** | Double-Voting Prevention | Press candidate/confirm buttons in `LOCK` | Buttons ignored; FSM stays in `LOCK`; tally unchanged | **PASSED** |
 | **T7** | Admin Result Readout | Assert `admin_mode = 1` from `IDLE` | FSM moves to `RESULT`; cycles through tallies | **PASSED** |
 
-### Multi-Voter Verification Sequence (Table 4.2 in Report):
+### Multi-Voter Verification Sequence:
 1. **Voter 1:** Authenticates $\rightarrow$ Selects Candidate A $\rightarrow$ Confirms $\rightarrow$ Locked.
 2. **Voter 2:** Authenticates $\rightarrow$ Selects Candidate B $\rightarrow$ Cancels $\rightarrow$ Selects Candidate C $\rightarrow$ Confirms $\rightarrow$ Locked.
 3. **Voter 3:** Authenticates $\rightarrow$ Selects Candidate A $\rightarrow$ Confirms $\rightarrow$ Locked.
