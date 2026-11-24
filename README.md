@@ -6,9 +6,9 @@ Targeted for the **Digilent Basys 3** development board (AMD/Xilinx Artix-7 `XC7
 
 ---
 
-## 🎬 Live Animation & Interactive Simulation
+## 🎬 Live and Interactive Simulation
 
-The animated diagram below runs continuously, illustrating the real-time FSM state progression, signal path activations, status LEDs, and 7-segment display decoding:
+The animated diagram below runs continuously, illustrating the real-time FSM state progression, signal path activations, status LEDs and 7-segment display decoding:
 
 <p align="center">
   <a href="https://nityanand-7484.github.io/FPGA-Secure-Digital-Voting-Machine/">
@@ -296,6 +296,5 @@ The self-checking testbench (`tb/voting_machine_tb.v`) verifies 7 key functional
 
 * **Project Title:** FPGA-Based Secure Digital Voting Machine Using FSM and RTL Design
 * **Author:** Nityanand Kumar
-* **Department:** Electronics & Communication Engineering (Avionics)
-* **Institution:** Central University of Jammu, Jammu
+* **Department:** Electronics & Communication Engineering
 * **Repository:** [https://github.com/Nityanand-7484/FPGA-Secure-Digital-Voting-Machine](https://github.com/Nityanand-7484/FPGA-Secure-Digital-Voting-Machine)
