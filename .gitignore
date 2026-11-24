@@ -1,0 +1,23 @@
+# Ignore reports and documents
+*.docx
+*.pdf
+FPGA_Voting_Machine_Project_Report*
+
+# Vivado and EDA build outputs
+.Xil/
+*.jou
+*.log
+*.pb
+*.wdb
+*.vcd
+*.bit
+*.bin
+*.dcp
+*.hwdef
+*.str
+work/
+xsim.dir/
+
+# OS metadata
+.DS_Store
+Thumbs.db
