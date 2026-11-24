@@ -11,11 +11,12 @@ Targeted for the **Digilent Basys 3** development board (AMD/Xilinx Artix-7 `XC7
 2. [Hardware Specifications & Pin Mapping](#-hardware-specifications--pin-mapping)
 3. [System Architecture & FSM Operation](#-system-architecture--fsm-operation)
 4. [Project Directory Structure](#-project-directory-structure)
-5. [Step-by-Step: How to Run in Xilinx Vivado](#-step-by-step-how-to-run-in-xilinx-vivado)
-6. [Step-by-Step: How to Simulate (Icarus Verilog / ModelSim)](#-step-by-step-how-to-simulate-icarus-verilog--modelsim)
-7. [Step-by-Step: How to Operate the Voting Machine](#-step-by-step-how-to-operate-the-voting-machine)
-8. [Functional Verification & Test Cases](#-functional-verification--test-cases)
-9. [Author & Academic Details](#-author--academic-details)
+5. [Interactive & Guided Simulation (Run Directly)](#-interactive--guided-simulation-run-directly)
+6. [Step-by-Step: How to Run in Xilinx Vivado](#-step-by-step-how-to-run-in-xilinx-vivado)
+7. [Step-by-Step: How to Simulate (Icarus Verilog / ModelSim)](#-step-by-step-how-to-simulate-icarus-verilog--modelsim)
+8. [Step-by-Step: How to Operate the Voting Machine](#-step-by-step-how-to-operate-the-voting-machine)
+9. [Functional Verification & Test Cases](#-functional-verification--test-cases)
+10. [Author & Academic Details](#-author--academic-details)
 
 ---
 
@@ -107,9 +108,28 @@ FPGA_Voting_Machine_Project/
 │   └── voting_machine_tb.v               # Self-checking testbench for all test cases
 ├── constraints/                          # Hardware Board Pin Constraints
 │   └── Basys3_Master.xdc                 # Complete pin mappings for Digilent Basys 3
+├── run_simulation.py                     # Visual Architecture, FSM, and Operation Simulator
 ├── .gitignore                            # Excludes EDA build files & private reports
 └── README.md                             # Comprehensive Documentation
 ```
+
+---
+
+## 🖥️ Interactive & Guided Simulation (Run Directly)
+
+You can run the architecture and operating procedure simulation right in your terminal:
+
+```bash
+python run_simulation.py
+```
+
+### Choose from 2 Modes:
+1. **Mode 1: Guided Step-by-Step Architecture & Operating Walkthrough**
+   * Automatically walks you through all 10 stages of operation.
+   * Renders the active module signal flow, FSM state register, hardware status LEDs, and a visual digital 7-segment display on your screen.
+   * Demonstrates failed passcode rejection, valid voting, cancellation & reselection, double-voting prevention, and administrator result tally cycling.
+2. **Mode 2: Interactive Virtual Voting Booth (Manual Control)**
+   * Manually test entering passcodes, picking candidates (A–D), pressing confirm/cancel, locking, and viewing results.
 
 ---
 
@@ -119,28 +139,18 @@ FPGA_Voting_Machine_Project/
 1. Launch **Xilinx Vivado** (2019.1, 2020.x, 2022.x, or newer).
 2. Click **Create Project** $\rightarrow$ Click **Next**.
 3. Name your project (e.g., `Voting_Machine_Vivado`) and select project location.
-4. Set Project Type to **RTL Project** (leave *"Do not specify sources at this time"* checked, or add them directly) $\rightarrow$ Click **Next**.
+4. Set Project Type to **RTL Project** $\rightarrow$ Click **Next**.
 
 ### Step 2: Select the Target FPGA Board
 * Under the **Parts** tab:
-  * Select Part: **`xc7a35tcpg236-1`** (This corresponds to the Digilent Basys 3 Artix-7 chip).
-* If you installed board files, you can also search under the **Boards** tab for **Basys 3**.
+  * Select Part: **`xc7a35tcpg236-1`** (Digilent Basys 3 Artix-7 chip).
 * Click **Next** $\rightarrow$ Click **Finish**.
 
 ### Step 3: Add Design Sources
 1. In the **Flow Navigator** (left pane), click **Add Sources** under *Project Manager*.
 2. Select **Add or create design sources** $\rightarrow$ Click **Next**.
-3. Click **Add Files** $\rightarrow$ Navigate to `FPGA_Voting_Machine_Project/src/`.
-4. Select all 8 `.v` files:
-   * `voting_machine_top.v`
-   * `voting_fsm.v`
-   * `authentication.v`
-   * `candidate_selector.v`
-   * `vote_counter.v`
-   * `button_debounce.v`
-   * `seven_segment.v`
-   * `result_controller.v`
-5. Click **OK** $\rightarrow$ Ensure `voting_machine_top.v` is set as the Top module (bolded in the Sources window).
+3. Click **Add Files** $\rightarrow$ Select all 8 `.v` files from `src/`.
+4. Click **OK** $\rightarrow$ Ensure `voting_machine_top.v` is set as the Top module.
 
 ### Step 4: Add Constraints
 1. Click **Add Sources** $\rightarrow$ Select **Add or create constraints** $\rightarrow$ Click **Next**.
@@ -152,23 +162,21 @@ FPGA_Voting_Machine_Project/
 
 ### Step 6: Run Behavioral Simulation
 1. Under **Flow Navigator**, click **Run Simulation** $\rightarrow$ **Run Behavioral Simulation**.
-2. The simulation waveform will open, and the Vivado Tcl Console will print the step-by-step execution:
+2. The simulation waveform will open, and the Vivado Tcl Console will print:
    * Tests T1 to T7 execution.
    * Multi-voter tally verification ($A=2, B=0, C=1, D=0$).
    * Double-voting block verification.
-   * Console will display: `>>> [ALL TESTS PASSED] MULTI-VOTER VERIFICATION & SYSTEM TALLY SUCCESSFUL! <<<`.
+   * Output: `>>> [ALL TESTS PASSED] MULTI-VOTER VERIFICATION & SYSTEM TALLY SUCCESSFUL! <<<`.
 
 ### Step 7: Run Synthesis & Implementation
-1. In Flow Navigator, click **Run Synthesis** (wait for completion).
-2. Click **Run Implementation** (wait for place & route).
-3. Review the **Project Summary** to inspect resource utilization (LUTs, Flip-Flops, I/O buffers).
+1. In Flow Navigator, click **Run Synthesis**.
+2. Click **Run Implementation**.
 
 ### Step 8: Generate Bitstream & Program the Board
 1. Click **Generate Bitstream** (creates `voting_machine_top.bit`).
-2. Connect your **Digilent Basys 3** board to your PC using a micro-USB cable.
-3. Power on the board (flip power switch).
-4. In Flow Navigator, click **Open Hardware Manager** $\rightarrow$ **Auto Connect**.
-5. Right-click on `xc7a35t_0` $\rightarrow$ Select **Program Device** $\rightarrow$ Select your `.bit` file $\rightarrow$ Click **Program**.
+2. Connect your **Digilent Basys 3** board to your PC via micro-USB.
+3. In Flow Navigator, click **Open Hardware Manager** $\rightarrow$ **Auto Connect**.
+4. Right-click `xc7a35t_0` $\rightarrow$ Select **Program Device** $\rightarrow$ Select `.bit` file $\rightarrow$ Click **Program**.
 
 ---
 
