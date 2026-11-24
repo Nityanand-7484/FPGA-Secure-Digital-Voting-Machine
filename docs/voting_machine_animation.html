@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FPGA Secure Voting Machine - Interactive Animation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.9; transform: scale(1); filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.7)); }
+      50% { opacity: 1; transform: scale(1.04); filter: drop-shadow(0 0 16px rgba(59, 130, 246, 1)); }
+    }
+    @keyframes flow-line {
+      to { stroke-dashoffset: -40; }
+    }
+    .active-state {
+      animation: pulse-glow 1.8s infinite ease-in-out;
+    }
+    .flow-active {
+      stroke-dasharray: 8 6;
+      animation: flow-line 0.8s linear infinite;
+    }
+    .led-on {
+      background-color: #22c55e;
+      box-shadow: 0 0 12px #22c55e, 0 0 20px #22c55e;
+    }
+    .led-off {
+      background-color: #3f3f46;
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 antialiased p-3 sm:p-5 m-0 font-sans">
+  <div class="max-w-5xl mx-auto space-y-4">
+    
+    <!-- Header & Navigation -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-neutral-800">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">
+            FPGA Voting Machine — Interactive Architecture & Operation
+          </h1>
+        </div>
+        <p class="text-xs text-neutral-400 mt-0.5">
+          FSM State Dynamics • Hardware Debouncing • Double-Voting Lockout • 7-Segment Multiplexing
+        </p>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center gap-2">
+        <button id="btnPrev" class="px-2.5 py-1.5 text-xs font-semibold rounded bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition">
+          ◀ Prev
+        </button>
+        <button id="btnPlayPause" class="px-3 py-1.5 text-xs font-semibold rounded bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1.5 shadow-sm">
+          <span id="playIcon">▶</span> <span id="playText">Auto Play</span>
+        </button>
+        <button id="btnNext" class="px-2.5 py-1.5 text-xs font-semibold rounded bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition">
+          Next ▶
+        </button>
+        <button id="btnReset" class="px-2.5 py-1.5 text-xs font-semibold rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition">
+          Reset (BtnC)
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Visualizer Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      
+      <!-- Left Panel: Animated FSM & Architecture Graph (7 Cols) -->
+      <div class="lg:col-span-7 bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex flex-col justify-between relative shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono uppercase tracking-wider text-blue-400 font-semibold flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            System Architecture & FSM Operation
+          </span>
+          <span id="stateBadge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+            STATE: IDLE (3'd0)
+          </span>
+        </div>
+
+        <!-- SVG FSM Transition & Flow Graph -->
+        <div class="w-full h-[320px] relative">
+          <svg viewBox="0 0 540 320" class="w-full h-full select-none">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="#71717a"/>
+              </marker>
+              <marker id="arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="#3b82f6"/>
+              </marker>
+            </defs>
+
+            <!-- Transition Paths -->
+            <path id="path_idle_auth" d="M 120 70 L 210 70" stroke="#52525b" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+            <path id="path_auth_select" d="M 310 70 L 400 70" stroke="#52525b" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+            <path id="path_select_confirm" d="M 450 100 L 450 170" stroke="#52525b" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+            <path id="path_confirm_cancel" d="M 420 185 C 385 185, 385 110, 420 95" stroke="#a855f7" stroke-dasharray="4 4" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+            <path id="path_confirm_cast" d="M 400 200 L 310 200" stroke="#52525b" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+            <path id="path_cast_lock" d="M 210 200 L 120 200" stroke="#52525b" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+            <path id="path_lock_idle" d="M 70 170 L 70 100" stroke="#22c55e" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+            <path id="path_idle_result" d="M 70 40 C 70 15, 260 15, 260 40" stroke="#eab308" stroke-width="2" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow)"/>
+
+            <!-- State Nodes -->
+            <g id="node_IDLE" transform="translate(70, 70)" class="cursor-pointer">
+              <circle r="36" fill="#18181b" stroke="#3b82f6" stroke-width="3" id="circle_IDLE"/>
+              <text text-anchor="middle" dy="-4" font-size="11" font-weight="bold" fill="#f4f4f5">IDLE</text>
+              <text text-anchor="middle" dy="12" font-size="9" fill="#94a3b8">Ready</text>
+            </g>
+
+            <g id="node_AUTH" transform="translate(260, 70)" class="cursor-pointer">
+              <circle r="36" fill="#18181b" stroke="#52525b" stroke-width="2.5" id="circle_AUTH"/>
+              <text text-anchor="middle" dy="-4" font-size="11" font-weight="bold" fill="#f4f4f5">AUTH</text>
+              <text text-anchor="middle" dy="12" font-size="9" fill="#94a3b8">Passcode</text>
+            </g>
+
+            <g id="node_SELECT" transform="translate(450, 70)" class="cursor-pointer">
+              <circle r="36" fill="#18181b" stroke="#52525b" stroke-width="2.5" id="circle_SELECT"/>
+              <text text-anchor="middle" dy="-4" font-size="11" font-weight="bold" fill="#f4f4f5">SELECT</text>
+              <text text-anchor="middle" dy="12" font-size="9" fill="#94a3b8">A / B / C / D</text>
+            </g>
+
+            <g id="node_CONFIRM" transform="translate(450, 200)" class="cursor-pointer">
+              <circle r="36" fill="#18181b" stroke="#52525b" stroke-width="2.5" id="circle_CONFIRM"/>
+              <text text-anchor="middle" dy="-4" font-size="11" font-weight="bold" fill="#f4f4f5">CONFIRM</text>
+              <text text-anchor="middle" dy="12" font-size="9" fill="#94a3b8">YES / NO</text>
+            </g>
+
+            <g id="node_CAST" transform="translate(260, 200)" class="cursor-pointer">
+              <circle r="36" fill="#18181b" stroke="#52525b" stroke-width="2.5" id="circle_CAST"/>
+              <text text-anchor="middle" dy="-4" font-size="11" font-weight="bold" fill="#f4f4f5">CAST</text>
+              <text text-anchor="middle" dy="12" font-size="9" fill="#94a3b8">1-Cycle Pulse</text>
+            </g>
+
+            <g id="node_LOCK" transform="translate(70, 200)" class="cursor-pointer">
+              <circle r="36" fill="#18181b" stroke="#52525b" stroke-width="2.5" id="circle_LOCK"/>
+              <text text-anchor="middle" dy="-4" font-size="11" font-weight="bold" fill="#f4f4f5">LOCK</text>
+              <text text-anchor="middle" dy="12" font-size="9" fill="#94a3b8">No Re-vote</text>
+            </g>
+
+            <g id="node_RESULT" transform="translate(260, 25)" class="cursor-pointer">
+              <rect x="-48" y="-14" width="96" height="28" rx="14" fill="#18181b" stroke="#eab308" stroke-width="2" id="rect_RESULT"/>
+              <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#facc15">ADMIN RESULT</text>
+            </g>
+
+            <!-- Path labels -->
+            <text x="165" y="62" font-size="8.5" fill="#a1a1aa" text-anchor="middle">auth_enter</text>
+            <text x="355" y="62" font-size="8.5" fill="#a1a1aa" text-anchor="middle">valid=1</text>
+            <text x="475" y="140" font-size="8.5" fill="#a1a1aa">cand_btn</text>
+            <text x="355" y="145" font-size="8" fill="#c084fc">cancel_btn (re-select)</text>
+            <text x="355" y="192" font-size="8.5" fill="#a1a1aa" text-anchor="middle">confirm_btn</text>
+            <text x="165" y="192" font-size="8.5" fill="#a1a1aa" text-anchor="middle">cast_vote=1</text>
+            <text x="25" y="135" font-size="8" fill="#4ade80" transform="rotate(-90 40 135)">new_session_btn</text>
+          </svg>
+        </div>
+
+        <!-- Real-Time Register State Monitor -->
+        <div class="mt-2 grid grid-cols-4 gap-2 pt-2 border-t border-neutral-800 font-mono text-[11px]">
+          <div class="bg-neutral-950 p-2 rounded border border-neutral-800">
+            <div class="text-neutral-500 text-[10px]">CANDIDATE A</div>
+            <div id="regVoteA" class="font-bold text-emerald-400 text-sm">00000</div>
+          </div>
+          <div class="bg-neutral-950 p-2 rounded border border-neutral-800">
+            <div class="text-neutral-500 text-[10px]">CANDIDATE B</div>
+            <div id="regVoteB" class="font-bold text-emerald-400 text-sm">00000</div>
+          </div>
+          <div class="bg-neutral-950 p-2 rounded border border-neutral-800">
+            <div class="text-neutral-500 text-[10px]">CANDIDATE C</div>
+            <div id="regVoteC" class="font-bold text-emerald-400 text-sm">00000</div>
+          </div>
+          <div class="bg-neutral-950 p-2 rounded border border-neutral-800">
+            <div class="text-neutral-500 text-[10px]">CANDIDATE D</div>
+            <div id="regVoteD" class="font-bold text-emerald-400 text-sm">00000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Step-by-Step Hardware Board Simulator (5 Cols) -->
+      <div class="lg:col-span-5 bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex flex-col justify-between shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+            Step-by-Step Board Operation
+          </span>
+          <span id="stepCounter" class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            Step 1 of 8
+          </span>
+        </div>
+
+        <!-- 7-Segment Multiplexed Display Emulator -->
+        <div class="bg-black p-3 rounded-lg border border-neutral-800 flex flex-col items-center justify-center shadow-inner">
+          <div class="text-[10px] font-mono tracking-widest text-neutral-500 mb-1">
+            BASYS 3 • 4-DIGIT 7-SEGMENT DISPLAY
+          </div>
+          <div class="flex items-center gap-2 px-3 py-2 bg-neutral-950 rounded border border-neutral-900">
+            <div class="w-10 h-16 relative flex items-center justify-center font-mono font-bold text-3xl text-red-500" id="digit3">r</div>
+            <div class="w-10 h-16 relative flex items-center justify-center font-mono font-bold text-3xl text-red-500" id="digit2">d</div>
+            <div class="w-10 h-16 relative flex items-center justify-center font-mono font-bold text-3xl text-red-500" id="digit1">y</div>
+            <div class="w-10 h-16 relative flex items-center justify-center font-mono font-bold text-3xl text-red-500" id="digit0">&nbsp;</div>
+          </div>
+        </div>
+
+        <!-- Status LEDs -->
+        <div class="bg-neutral-950 p-3 rounded-lg border border-neutral-800 space-y-1.5">
+          <div class="text-[10px] font-mono uppercase text-neutral-400">Board Status LEDs (status_led[3:0])</div>
+          <div class="grid grid-cols-4 gap-2 text-center text-[10px] font-mono">
+            <div class="flex flex-col items-center gap-1">
+              <div id="led3" class="w-3.5 h-3.5 rounded-full led-off transition-all"></div>
+              <span class="text-neutral-400">LD3: LOCK</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div id="led2" class="w-3.5 h-3.5 rounded-full led-off transition-all"></div>
+              <span class="text-neutral-400">LD2: CAND</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div id="led1" class="w-3.5 h-3.5 rounded-full led-off transition-all"></div>
+              <span class="text-neutral-400">LD1: AUTH</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div id="led0" class="w-3.5 h-3.5 rounded-full led-on transition-all"></div>
+              <span class="text-neutral-400">LD0: READY</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Explanation Card -->
+        <div class="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 min-h-[110px] flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-semibold text-blue-300 flex items-center gap-1.5 mb-1" id="stepTitle">
+              Phase 1: System Power-On & Ready State
+            </div>
+            <p class="text-xs text-neutral-300 leading-relaxed" id="stepDescription">
+              The system powers on or undergoes master reset (BtnC). The FSM initializes to IDLE, lighting LD0 (Ready) and displaying "rdy " across the multiplexed 7-segment display.
+            </p>
+          </div>
+          <div class="mt-2 text-[10px] font-mono text-blue-400 flex items-center justify-between pt-1 border-t border-blue-900/30">
+            <span id="activeActionLabel">Next: Enter Passcode & Press Enter (BtnU)</span>
+            <span id="fsmTransitionLabel">FSM: IDLE</span>
+          </div>
+        </div>
+
+        <!-- Interactive Board Buttons -->
+        <div class="grid grid-cols-3 gap-1.5 text-xs font-semibold">
+          <button onclick="triggerAction('enter')" class="p-2 rounded bg-neutral-800 hover:bg-neutral-700 active:scale-95 transition border border-neutral-700 text-left">
+            <span class="text-[10px] block text-neutral-400 font-mono">BtnU (Up)</span>
+            Enter Passcode
+          </button>
+          <button onclick="triggerAction('candA')" class="p-2 rounded bg-neutral-800 hover:bg-neutral-700 active:scale-95 transition border border-neutral-700 text-left">
+            <span class="text-[10px] block text-neutral-400 font-mono">BTN1 / SW4</span>
+            Candidate A
+          </button>
+          <button onclick="triggerAction('candC')" class="p-2 rounded bg-neutral-800 hover:bg-neutral-700 active:scale-95 transition border border-neutral-700 text-left">
+            <span class="text-[10px] block text-neutral-400 font-mono">BTN3 / SW6</span>
+            Candidate C
+          </button>
+          <button onclick="triggerAction('confirm')" class="p-2 rounded bg-emerald-950 hover:bg-emerald-900 text-emerald-300 active:scale-95 transition border border-emerald-800 text-left">
+            <span class="text-[10px] block text-emerald-400 font-mono">BtnR (Right)</span>
+            Confirm (YES)
+          </button>
+          <button onclick="triggerAction('cancel')" class="p-2 rounded bg-amber-950 hover:bg-amber-900 text-amber-300 active:scale-95 transition border border-amber-800 text-left">
+            <span class="text-[10px] block text-amber-400 font-mono">BtnL (Left)</span>
+            Cancel (NO)
+          </button>
+          <button onclick="triggerAction('newSession')" class="p-2 rounded bg-purple-950 hover:bg-purple-900 text-purple-300 active:scale-95 transition border border-purple-800 text-left">
+            <span class="text-[10px] block text-purple-400 font-mono">BtnD (Down)</span>
+            Officer Unlock
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Timeline Progress Bar -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-3 flex items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2 overflow-x-auto w-full py-1">
+        <span class="text-[11px] font-mono text-neutral-400 whitespace-nowrap">Voting Timeline:</span>
+        <button onclick="goToStep(0)" class="timeline-step px-2 py-1 rounded bg-blue-600 text-white font-mono text-[11px] whitespace-nowrap">1. IDLE</button>
+        <button onclick="goToStep(1)" class="timeline-step px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 font-mono text-[11px] whitespace-nowrap">2. Passcode Auth</button>
+        <button onclick="goToStep(2)" class="timeline-step px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 font-mono text-[11px] whitespace-nowrap">3. Candidate Select</button>
+        <button onclick="goToStep(3)" class="timeline-step px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 font-mono text-[11px] whitespace-nowrap">4. Cancel & Re-pick</button>
+        <button onclick="goToStep(4)" class="timeline-step px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 font-mono text-[11px] whitespace-nowrap">5. Cast & Lockout</button>
+        <button onclick="goToStep(5)" class="timeline-step px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 font-mono text-[11px] whitespace-nowrap">6. Double-Vote Block</button>
+        <button onclick="goToStep(6)" class="timeline-step px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 font-mono text-[11px] whitespace-nowrap">7. Officer New Session</button>
+        <button onclick="goToStep(7)" class="timeline-step px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 font-mono text-[11px] whitespace-nowrap">8. Admin Results</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const STEPS = [
+      {
+        id: 0,
+        fsmState: 'IDLE',
+        badge: "STATE: IDLE (3'd0)",
+        title: 'Phase 1: System Power-On & Ready State',
+        desc: 'On power-up or system reset (BtnC), all registers are zeroed out. The FSM sits in IDLE, LED0 (Ready) turns on, and the 7-segment display shows "rdy ".',
+        digits: ['r', 'd', 'y', ' '],
+        leds: [0, 0, 0, 1],
+        nextAction: 'Action: Enter 4-bit passcode (SW0..3 = 1011) and press Enter (BtnU).',
+        activePath: 'path_idle_auth',
+        activeCircle: 'circle_IDLE'
+      },
+      {
+        id: 1,
+        fsmState: 'AUTH',
+        badge: "STATE: AUTH (3'd1)",
+        title: 'Phase 2: Voter Passcode Authentication',
+        desc: 'The voter enters passcode 4\'b1011 via slide switches SW3..SW0 and presses Enter (BtnU). The authentication module matches it against the on-chip reference password, asserting valid=1.',
+        digits: ['P', 'A', 'S', 'S'],
+        leds: [0, 0, 1, 0],
+        nextAction: 'Action: Passcode verified! Transitions to CANDIDATE SELECTION.',
+        activePath: 'path_auth_select',
+        activeCircle: 'circle_AUTH'
+      },
+      {
+        id: 2,
+        fsmState: 'SELECT',
+        badge: "STATE: CANDIDATE SELECTION (3'd2)",
+        title: 'Phase 3: Candidate Selection (A, B, C, D)',
+        desc: 'The candidate_selector module activates. The display shows "SELC". The voter chooses Candidate A by asserting BTN1 / SW4.',
+        digits: ['S', 'E', 'L', 'C'],
+        leds: [0, 1, 1, 0],
+        nextAction: 'Action: Candidate A chosen. Advances to CONFIRMATION state.',
+        activePath: 'path_select_confirm',
+        activeCircle: 'circle_SELECT'
+      },
+      {
+        id: 3,
+        fsmState: 'CONFIRM',
+        badge: "STATE: CONFIRMATION (3'd3)",
+        title: 'Phase 4: Confirmation & Voter Cancellation (Re-selection)',
+        desc: 'The display prompts "yES A". Before confirming, the voter decides to change their mind and presses Cancel (BtnL / NO). The FSM loops safely back to SELECT so the voter can re-pick!',
+        digits: ['y', 'E', 'S', 'A'],
+        leds: [0, 1, 1, 0],
+        nextAction: 'Action: Voter presses Cancel (BtnL) to re-select, then re-selects Candidate C.',
+        activePath: 'path_confirm_cancel',
+        activeCircle: 'circle_CONFIRM'
+      },
+      {
+        id: 4,
+        fsmState: 'CAST',
+        badge: "STATE: VOTE CAST -> LOCK (3'd4/5)",
+        title: 'Phase 5: Single-Cycle Vote Casting & Persistent Lockout',
+        desc: 'The voter confirms by pressing BtnR (YES). The FSM enters CAST for exactly 1 clock cycle, pulsing cast_vote=1 to increment Candidate C\'s 16-bit counter, then immediately locks into LOCK ("dOnE").',
+        digits: ['d', 'O', 'n', 'E'],
+        leds: [1, 0, 0, 0],
+        votes: [0, 0, 1, 0],
+        nextAction: 'Action: Vote recorded! Booth is locked.',
+        activePath: 'path_confirm_cast',
+        activeCircle: 'circle_CAST'
+      },
+      {
+        id: 5,
+        fsmState: 'LOCK',
+        badge: "STATE: SESSION LOCK (3'd5)",
+        title: 'Phase 6: Double-Voting Prevention Enforcement',
+        desc: 'The voter attempts to press buttons again to vote twice. The FSM completely ignores all candidate and confirm buttons in the LOCK state. The tally remains securely guarded.',
+        digits: ['d', 'O', 'n', 'E'],
+        leds: [1, 0, 0, 0],
+        votes: [0, 0, 1, 0],
+        nextAction: 'Action: Double vote blocked! Only the official key can unlock.',
+        activePath: 'path_cast_lock',
+        activeCircle: 'circle_LOCK'
+      },
+      {
+        id: 6,
+        fsmState: 'IDLE',
+        badge: "STATE: IDLE (Session Reset)",
+        title: 'Phase 7: Polling Official Session Re-arm',
+        desc: 'The polling officer presses the dedicated Down button (BtnD / new_session). The debouncer generates a clean pulse, unlocking the FSM back to IDLE ("rdy ") for the next voter.',
+        digits: ['r', 'd', 'y', ' '],
+        leds: [0, 0, 0, 1],
+        votes: [0, 0, 1, 0],
+        nextAction: 'Action: Next voter arrives, or Election Officer activates Admin Mode.',
+        activePath: 'path_lock_idle',
+        activeCircle: 'circle_IDLE'
+      },
+      {
+        id: 7,
+        fsmState: 'RESULT',
+        badge: "STATE: ADMIN RESULT (3'd6)",
+        title: 'Phase 8: Election Officer Admin Mode & Tally Inspection',
+        desc: 'From IDLE, the administrator flips SW15 (admin_mode = 1). All 4 LEDs light up, and the 7-segment display cycles through each candidate\'s accumulated votes using the result_controller multiplexer.',
+        digits: ['C', '0', '0', '1'],
+        leds: [1, 1, 1, 1],
+        votes: [2, 0, 1, 0],
+        nextAction: 'Action: Press BtnR to cycle candidates (A -> B -> C -> D). Flip SW15 off to exit.',
+        activePath: 'path_idle_result',
+        activeCircle: 'rect_RESULT'
+      }
+    ];
+
+    let currentStepIndex = 0;
+    let autoPlayInterval = null;
+    let votes = [0, 0, 0, 0];
+
+    function updateView(idx) {
+      currentStepIndex = idx;
+      const step = STEPS[idx];
+
+      document.getElementById('stateBadge').textContent = step.badge;
+      document.getElementById('stepCounter').textContent = `Step ${idx + 1} of ${STEPS.length}`;
+      document.getElementById('stepTitle').textContent = step.title;
+      document.getElementById('stepDescription').textContent = step.desc;
+      document.getElementById('activeActionLabel').textContent = step.nextAction;
+      document.getElementById('fsmTransitionLabel').textContent = `FSM: ${step.fsmState}`;
+
+      document.getElementById('digit3').innerHTML = step.digits[0] || '&nbsp;';
+      document.getElementById('digit2').innerHTML = step.digits[1] || '&nbsp;';
+      document.getElementById('digit1').innerHTML = step.digits[2] || '&nbsp;';
+      document.getElementById('digit0').innerHTML = step.digits[3] || '&nbsp;';
+
+      const ledElements = [
+        document.getElementById('led3'),
+        document.getElementById('led2'),
+        document.getElementById('led1'),
+        document.getElementById('led0')
+      ];
+      step.leds.forEach((state, i) => {
+        if (state === 1) {
+          ledElements[i].className = 'w-3.5 h-3.5 rounded-full led-on transition-all';
+        } else {
+          ledElements[i].className = 'w-3.5 h-3.5 rounded-full led-off transition-all';
+        }
+      });
+
+      if (step.votes) {
+        votes = [...step.votes];
+      }
+      document.getElementById('regVoteA').textContent = String(votes[0]).padStart(5, '0');
+      document.getElementById('regVoteB').textContent = String(votes[1]).padStart(5, '0');
+      document.getElementById('regVoteC').textContent = String(votes[2]).padStart(5, '0');
+      document.getElementById('regVoteD').textContent = String(votes[3]).padStart(5, '0');
+
+      const allCircles = ['circle_IDLE', 'circle_AUTH', 'circle_SELECT', 'circle_CONFIRM', 'circle_CAST', 'circle_LOCK'];
+      allCircles.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.setAttribute('stroke', '#52525b');
+          el.setAttribute('stroke-width', '2.5');
+          el.classList.remove('active-state');
+        }
+      });
+      const rectRes = document.getElementById('rect_RESULT');
+      if (rectRes) {
+        rectRes.setAttribute('stroke', '#eab308');
+        rectRes.setAttribute('stroke-width', '2');
+        rectRes.classList.remove('active-state');
+      }
+
+      const activeNodeEl = document.getElementById(step.activeCircle);
+      if (activeNodeEl) {
+        activeNodeEl.setAttribute('stroke', '#3b82f6');
+        activeNodeEl.setAttribute('stroke-width', '4');
+        activeNodeEl.classList.add('active-state');
+      }
+
+      const allPaths = ['path_idle_auth', 'path_auth_select', 'path_select_confirm', 'path_confirm_cancel', 'path_confirm_cast', 'path_cast_lock', 'path_lock_idle', 'path_idle_result'];
+      allPaths.forEach(pId => {
+        const p = document.getElementById(pId);
+        if (p) {
+          p.classList.remove('flow-active');
+          p.setAttribute('stroke', pId.includes('cancel') ? '#a855f7' : pId.includes('result') ? '#eab308' : '#52525b');
+        }
+      });
+
+      const activePathEl = document.getElementById(step.activePath);
+      if (activePathEl) {
+        activePathEl.classList.add('flow-active');
+        activePathEl.setAttribute('stroke', '#3b82f6');
+      }
+
+      document.querySelectorAll('.timeline-step').forEach((btn, i) => {
+        if (i === idx) {
+          btn.className = 'timeline-step px-2 py-1 rounded bg-blue-600 text-white font-mono text-[11px] whitespace-nowrap shadow-sm';
+        } else {
+          btn.className = 'timeline-step px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-mono text-[11px] whitespace-nowrap';
+        }
+      });
+    }
+
+    function goToStep(idx) {
+      updateView(idx);
+    }
+
+    function nextStep() {
+      const nextIdx = (currentStepIndex + 1) % STEPS.length;
+      updateView(nextIdx);
+    }
+
+    function prevStep() {
+      const prevIdx = (currentStepIndex - 1 + STEPS.length) % STEPS.length;
+      updateView(prevIdx);
+    }
+
+    function togglePlay() {
+      if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = null;
+        document.getElementById('playIcon').textContent = '▶';
+        document.getElementById('playText').textContent = 'Auto Play';
+      } else {
+        document.getElementById('playIcon').textContent = '⏸';
+        document.getElementById('playText').textContent = 'Pause';
+        autoPlayInterval = setInterval(() => {
+          nextStep();
+        }, 3200);
+      }
+    }
+
+    function triggerAction(action) {
+      if (action === 'enter') updateView(1);
+      else if (action === 'candA') updateView(2);
+      else if (action === 'candC') updateView(3);
+      else if (action === 'confirm') updateView(4);
+      else if (action === 'cancel') updateView(2);
+      else if (action === 'newSession') updateView(6);
+    }
+
+    document.getElementById('btnNext').addEventListener('click', nextStep);
+    document.getElementById('btnPrev').addEventListener('click', prevStep);
+    document.getElementById('btnPlayPause').addEventListener('click', togglePlay);
+    document.getElementById('btnReset').addEventListener('click', () => {
+      votes = [0, 0, 0, 0];
+      updateView(0);
+    });
+
+    document.getElementById('node_IDLE').addEventListener('click', () => updateView(0));
+    document.getElementById('node_AUTH').addEventListener('click', () => updateView(1));
+    document.getElementById('node_SELECT').addEventListener('click', () => updateView(2));
+    document.getElementById('node_CONFIRM').addEventListener('click', () => updateView(3));
+    document.getElementById('node_CAST').addEventListener('click', () => updateView(4));
+    document.getElementById('node_LOCK').addEventListener('click', () => updateView(5));
+    document.getElementById('node_RESULT').addEventListener('click', () => updateView(7));
+
+    updateView(0);
+  </script>
+</body>
+</html>
