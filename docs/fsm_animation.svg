@@ -1,0 +1,293 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 420" width="100%" height="100%" style="background-color: #0d1117; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+  <defs>
+    <!-- Arrow marker -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#484f58"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#58a6ff"/>
+    </marker>
+
+    <style>
+      /* Flowing dashes animation */
+      @keyframes dash {
+        to { stroke-dashoffset: -32; }
+      }
+      .flow-path {
+        stroke-dasharray: 6 4;
+        animation: dash 1s linear infinite;
+      }
+
+      /* 16s Total Loop for 6 Key Stages */
+      /* 0-2.5s: IDLE | 2.5-5s: AUTH | 5-7.5s: SELECT | 7.5-10s: CONFIRM | 10-12.5s: LOCK | 12.5-16s: RESULT */
+      
+      @keyframes glow-idle {
+        0%, 15% { stroke: #58a6ff; stroke-width: 4; filter: drop-shadow(0 0 8px #58a6ff); }
+        18%, 100% { stroke: #30363d; stroke-width: 2; filter: none; }
+      }
+      @keyframes glow-auth {
+        0%, 15% { stroke: #30363d; stroke-width: 2; filter: none; }
+        18%, 31% { stroke: #58a6ff; stroke-width: 4; filter: drop-shadow(0 0 8px #58a6ff); }
+        34%, 100% { stroke: #30363d; stroke-width: 2; filter: none; }
+      }
+      @keyframes glow-select {
+        0%, 31% { stroke: #30363d; stroke-width: 2; filter: none; }
+        34%, 47% { stroke: #58a6ff; stroke-width: 4; filter: drop-shadow(0 0 8px #58a6ff); }
+        50%, 100% { stroke: #30363d; stroke-width: 2; filter: none; }
+      }
+      @keyframes glow-confirm {
+        0%, 47% { stroke: #30363d; stroke-width: 2; filter: none; }
+        50%, 63% { stroke: #58a6ff; stroke-width: 4; filter: drop-shadow(0 0 8px #58a6ff); }
+        66%, 100% { stroke: #30363d; stroke-width: 2; filter: none; }
+      }
+      @keyframes glow-lock {
+        0%, 63% { stroke: #30363d; stroke-width: 2; filter: none; }
+        66%, 79% { stroke: #f85149; stroke-width: 4; filter: drop-shadow(0 0 8px #f85149); }
+        82%, 100% { stroke: #30363d; stroke-width: 2; filter: none; }
+      }
+      @keyframes glow-result {
+        0%, 79% { stroke: #30363d; stroke-width: 2; filter: none; }
+        82%, 98% { stroke: #e3b341; stroke-width: 4; filter: drop-shadow(0 0 8px #e3b341); }
+        100% { stroke: #30363d; stroke-width: 2; filter: none; }
+      }
+
+      /* Synchronized LED animations */
+      @keyframes led0-anim {
+        0%, 15% { fill: #3fb950; filter: drop-shadow(0 0 6px #3fb950); }
+        18%, 79% { fill: #21262d; filter: none; }
+        82%, 98% { fill: #3fb950; filter: drop-shadow(0 0 6px #3fb950); }
+        100% { fill: #3fb950; }
+      }
+      @keyframes led1-anim {
+        0%, 15% { fill: #21262d; filter: none; }
+        18%, 47% { fill: #3fb950; filter: drop-shadow(0 0 6px #3fb950); }
+        50%, 79% { fill: #21262d; filter: none; }
+        82%, 98% { fill: #3fb950; filter: drop-shadow(0 0 6px #3fb950); }
+        100% { fill: #21262d; }
+      }
+      @keyframes led2-anim {
+        0%, 31% { fill: #21262d; filter: none; }
+        34%, 63% { fill: #3fb950; filter: drop-shadow(0 0 6px #3fb950); }
+        66%, 79% { fill: #21262d; filter: none; }
+        82%, 98% { fill: #3fb950; filter: drop-shadow(0 0 6px #3fb950); }
+        100% { fill: #21262d; }
+      }
+      @keyframes led3-anim {
+        0%, 63% { fill: #21262d; filter: none; }
+        66%, 79% { fill: #f85149; filter: drop-shadow(0 0 6px #f85149); }
+        82%, 98% { fill: #3fb950; filter: drop-shadow(0 0 6px #3fb950); }
+        100% { fill: #21262d; }
+      }
+
+      /* Synchronized 7-Segment text switcher */
+      @keyframes text-rdy {
+        0%, 15% { opacity: 1; }
+        18%, 100% { opacity: 0; }
+      }
+      @keyframes text-pass {
+        0%, 15% { opacity: 0; }
+        18%, 31% { opacity: 1; }
+        34%, 100% { opacity: 0; }
+      }
+      @keyframes text-selc {
+        0%, 31% { opacity: 0; }
+        34%, 47% { opacity: 1; }
+        50%, 100% { opacity: 0; }
+      }
+      @keyframes text-yes {
+        0%, 47% { opacity: 0; }
+        50%, 63% { opacity: 1; }
+        66%, 100% { opacity: 0; }
+      }
+      @keyframes text-done {
+        0%, 63% { opacity: 0; }
+        66%, 79% { opacity: 1; }
+        82%, 100% { opacity: 0; }
+      }
+      @keyframes text-res {
+        0%, 79% { opacity: 0; }
+        82%, 98% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+
+      .node-idle   { animation: glow-idle 16s infinite; }
+      .node-auth   { animation: glow-auth 16s infinite; }
+      .node-select { animation: glow-select 16s infinite; }
+      .node-confirm{ animation: glow-confirm 16s infinite; }
+      .node-lock   { animation: glow-lock 16s infinite; }
+      .node-result { animation: glow-result 16s infinite; }
+
+      .anim-led0 { animation: led0-anim 16s infinite; }
+      .anim-led1 { animation: led1-anim 16s infinite; }
+      .anim-led2 { animation: led2-anim 16s infinite; }
+      .anim-led3 { animation: led3-anim 16s infinite; }
+
+      .disp-rdy  { animation: text-rdy 16s infinite; }
+      .disp-pass { animation: text-pass 16s infinite; }
+      .disp-selc { animation: text-selc 16s infinite; }
+      .disp-yes  { animation: text-yes 16s infinite; }
+      .disp-done { animation: text-done 16s infinite; }
+      .disp-res  { animation: text-res 16s infinite; }
+    </style>
+  </defs>
+
+  <!-- Background Border Frame -->
+  <rect x="8" y="8" width="824" height="404" rx="12" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+
+  <!-- Header Title Bar -->
+  <text x="24" y="36" fill="#f0f6fc" font-size="14" font-weight="bold">FPGA Secure Digital Voting Machine — System Architecture &amp; FSM Animation</text>
+  <circle cx="800" cy="32" r="5" fill="#3fb950"/>
+  <text x="735" y="36" fill="#8b949e" font-size="11">LIVE FSM</text>
+  <line x1="24" y1="50" x2="816" y2="50" stroke="#21262d" stroke-width="1.5"/>
+
+  <!-- ===================================================================== -->
+  <!-- LEFT PANEL: FSM STATE TRANSITION GRAPH                                -->
+  <!-- ===================================================================== -->
+  <g transform="translate(10, 20)">
+    <!-- Title -->
+    <text x="20" y="55" fill="#58a6ff" font-size="11" font-weight="bold">FINITE STATE MACHINE (voting_fsm.v)</text>
+
+    <!-- Transition Lines -->
+    <!-- IDLE -> AUTH -->
+    <path d="M 90 120 L 175 120" stroke="#58a6ff" stroke-width="2" class="flow-path" marker-end="url(#arrow-blue)"/>
+    <text x="132" y="112" fill="#8b949e" font-size="8" text-anchor="middle">auth_enter</text>
+
+    <!-- AUTH -> SELECT -->
+    <path d="M 245 120 L 330 120" stroke="#58a6ff" stroke-width="2" class="flow-path" marker-end="url(#arrow-blue)"/>
+    <text x="287" y="112" fill="#8b949e" font-size="8" text-anchor="middle">valid=1</text>
+
+    <!-- SELECT -> CONFIRM -->
+    <path d="M 365 155 L 365 220" stroke="#58a6ff" stroke-width="2" class="flow-path" marker-end="url(#arrow-blue)"/>
+    <text x="395" y="190" fill="#8b949e" font-size="8">cand_btn</text>
+
+    <!-- CONFIRM -> SELECT (Cancel Loop) -->
+    <path d="M 335 240 C 300 240, 300 160, 335 135" stroke="#bc8cff" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow)"/>
+    <text x="260" y="185" fill="#bc8cff" font-size="8">cancel_btn</text>
+
+    <!-- CONFIRM -> LOCK (via CAST) -->
+    <path d="M 330 255 L 95 255" stroke="#f85149" stroke-width="2" class="flow-path" marker-end="url(#arrow-blue)"/>
+    <text x="210" y="247" fill="#8b949e" font-size="8" text-anchor="middle">confirm (cast_vote=1)</text>
+
+    <!-- LOCK -> IDLE (Officer Unlock) -->
+    <path d="M 55 220 L 55 155" stroke="#3fb950" stroke-width="2" class="flow-path" marker-end="url(#arrow-blue)"/>
+    <text x="45" y="190" fill="#3fb950" font-size="8" text-anchor="end">new_session</text>
+
+    <!-- IDLE -> RESULT (Admin Mode) -->
+    <path d="M 55 85 C 55 58, 210 58, 210 85" stroke="#e3b341" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow)"/>
+    <text x="135" y="60" fill="#e3b341" font-size="8" text-anchor="middle">admin_mode=1</text>
+
+    <!-- State Nodes -->
+    <!-- IDLE Node -->
+    <circle cx="55" cy="120" r="32" fill="#0d1117" stroke="#30363d" stroke-width="2" class="node-idle"/>
+    <text x="55" y="117" fill="#f0f6fc" font-size="10" font-weight="bold" text-anchor="middle">IDLE</text>
+    <text x="55" y="130" fill="#8b949e" font-size="8" text-anchor="middle">Ready</text>
+
+    <!-- AUTH Node -->
+    <circle cx="210" cy="120" r="32" fill="#0d1117" stroke="#30363d" stroke-width="2" class="node-auth"/>
+    <text x="210" y="117" fill="#f0f6fc" font-size="10" font-weight="bold" text-anchor="middle">AUTH</text>
+    <text x="210" y="130" fill="#8b949e" font-size="8" text-anchor="middle">Passcode</text>
+
+    <!-- SELECT Node -->
+    <circle cx="365" cy="120" r="32" fill="#0d1117" stroke="#30363d" stroke-width="2" class="node-select"/>
+    <text x="365" y="117" fill="#f0f6fc" font-size="10" font-weight="bold" text-anchor="middle">SELECT</text>
+    <text x="365" y="130" fill="#8b949e" font-size="8" text-anchor="middle">A,B,C,D</text>
+
+    <!-- CONFIRM Node -->
+    <circle cx="365" cy="255" r="32" fill="#0d1117" stroke="#30363d" stroke-width="2" class="node-confirm"/>
+    <text x="365" y="252" fill="#f0f6fc" font-size="10" font-weight="bold" text-anchor="middle">CONFIRM</text>
+    <text x="365" y="265" fill="#8b949e" font-size="8" text-anchor="middle">YES / NO</text>
+
+    <!-- LOCK Node -->
+    <circle cx="55" cy="255" r="32" fill="#0d1117" stroke="#30363d" stroke-width="2" class="node-lock"/>
+    <text x="55" y="252" fill="#f0f6fc" font-size="10" font-weight="bold" text-anchor="middle">LOCK</text>
+    <text x="55" y="265" fill="#f85149" font-size="8" text-anchor="middle">Session Locked</text>
+
+    <!-- RESULT Node -->
+    <rect x="165" y="72" width="90" height="26" rx="13" fill="#0d1117" stroke="#30363d" stroke-width="2" class="node-result"/>
+    <text x="210" y="89" fill="#e3b341" font-size="9" font-weight="bold" text-anchor="middle">ADMIN RESULT</text>
+
+    <!-- Register readout box -->
+    <rect x="20" y="315" width="380" height="48" rx="6" fill="#0d1117" stroke="#30363d"/>
+    <text x="32" y="333" fill="#8b949e" font-size="9">16-BIT COUNTERS (vote_counter.v):</text>
+    <text x="32" y="352" fill="#3fb950" font-size="11" font-weight="bold">A: 00002   B: 00000   C: 00001   D: 00000</text>
+  </g>
+
+  <!-- Vertical Divider -->
+  <line x1="430" y1="65" x2="430" y2="395" stroke="#21262d" stroke-width="1.5"/>
+
+  <!-- ===================================================================== -->
+  <!-- RIGHT PANEL: VIRTUAL FPGA BOARD & HARDWARE INTERACTION                -->
+  <!-- ===================================================================== -->
+  <g transform="translate(445, 20)">
+    <text x="15" y="55" fill="#3fb950" font-size="11" font-weight="bold">VIRTUAL FPGA HARDWARE DISPLAY (Basys 3)</text>
+
+    <!-- 7-Segment Display Housing -->
+    <rect x="15" y="70" width="360" height="100" rx="8" fill="#000000" stroke="#30363d"/>
+    <text x="25" y="88" fill="#6e7681" font-size="9">4-DIGIT MULTIPLEXED 7-SEGMENT DISPLAY</text>
+
+    <!-- Segment Digits Container -->
+    <g transform="translate(40, 100)">
+      <!-- Background display glow box -->
+      <rect x="0" y="0" width="310" height="55" rx="4" fill="#0a0a0c" stroke="#161b22"/>
+
+      <!-- Digital Text Overlays synced to 16s cycle -->
+      <!-- Phase 1: rdy -->
+      <text x="155" y="40" fill="#f85149" font-size="34" font-weight="bold" text-anchor="middle" letter-spacing="16" class="disp-rdy" filter="drop-shadow(0 0 6px #f85149)">r d y  </text>
+      <!-- Phase 2: PASS -->
+      <text x="155" y="40" fill="#f85149" font-size="34" font-weight="bold" text-anchor="middle" letter-spacing="16" class="disp-pass" filter="drop-shadow(0 0 6px #f85149)">P A S S</text>
+      <!-- Phase 3: SELC -->
+      <text x="155" y="40" fill="#f85149" font-size="34" font-weight="bold" text-anchor="middle" letter-spacing="16" class="disp-selc" filter="drop-shadow(0 0 6px #f85149)">S E L C</text>
+      <!-- Phase 4: YES A -->
+      <text x="155" y="40" fill="#f85149" font-size="34" font-weight="bold" text-anchor="middle" letter-spacing="16" class="disp-yes" filter="drop-shadow(0 0 6px #f85149)">y E S A</text>
+      <!-- Phase 5: dOnE -->
+      <text x="155" y="40" fill="#f85149" font-size="34" font-weight="bold" text-anchor="middle" letter-spacing="16" class="disp-done" filter="drop-shadow(0 0 6px #f85149)">d O n E</text>
+      <!-- Phase 6: A002 -->
+      <text x="155" y="40" fill="#f85149" font-size="34" font-weight="bold" text-anchor="middle" letter-spacing="16" class="disp-res" filter="drop-shadow(0 0 6px #f85149)">A 0 0 2</text>
+    </g>
+
+    <!-- Status LEDs Box -->
+    <rect x="15" y="185" width="360" height="65" rx="8" fill="#0d1117" stroke="#30363d"/>
+    <text x="25" y="202" fill="#6e7681" font-size="9">STATUS LEDS (status_led[3:0])</text>
+
+    <!-- LEDs -->
+    <g transform="translate(45, 215)">
+      <!-- LED 3 (LOCK) -->
+      <circle cx="20" cy="10" r="7" fill="#21262d" class="anim-led3"/>
+      <text x="20" y="28" fill="#8b949e" font-size="8" text-anchor="middle">LD3:LOCK</text>
+
+      <!-- LED 2 (CAND) -->
+      <circle cx="100" cy="10" r="7" fill="#21262d" class="anim-led2"/>
+      <text x="100" y="28" fill="#8b949e" font-size="8" text-anchor="middle">LD2:CAND</text>
+
+      <!-- LED 1 (AUTH) -->
+      <circle cx="180" cy="10" r="7" fill="#21262d" class="anim-led1"/>
+      <text x="180" y="28" fill="#8b949e" font-size="8" text-anchor="middle">LD1:AUTH</text>
+
+      <!-- LED 0 (READY) -->
+      <circle cx="260" cy="10" r="7" fill="#3fb950" class="anim-led0"/>
+      <text x="260" y="28" fill="#8b949e" font-size="8" text-anchor="middle">LD0:READY</text>
+    </g>
+
+    <!-- Step Procedure Walkthrough Box -->
+    <rect x="15" y="265" width="360" height="98" rx="8" fill="#0d1117" stroke="#30363d"/>
+    <text x="25" y="283" fill="#58a6ff" font-size="10" font-weight="bold">ACTIVE VOTING PROCEDURE:</text>
+
+    <text x="25" y="303" fill="#f0f6fc" font-size="9" class="disp-rdy">1. System Ready: Booth armed for voter. Display "rdy ".</text>
+    <text x="25" y="320" fill="#8b949e" font-size="8.5" class="disp-rdy">   Input: Voter sets switches SW3..SW0 = 1011 &amp; presses BtnU.</text>
+
+    <text x="25" y="303" fill="#f0f6fc" font-size="9" class="disp-pass">2. Passcode Auth: Password verified on-chip. Display "PASS".</text>
+    <text x="25" y="320" fill="#8b949e" font-size="8.5" class="disp-pass">   Next: Transitions directly to Candidate Selection.</text>
+
+    <text x="25" y="303" fill="#f0f6fc" font-size="9" class="disp-selc">3. Candidate Selection: Voter selects candidate (A, B, C, D).</text>
+    <text x="25" y="320" fill="#8b949e" font-size="8.5" class="disp-selc">   Input: Voter presses BTN1 (Candidate A). Advances to Confirm.</text>
+
+    <text x="25" y="303" fill="#f0f6fc" font-size="9" class="disp-yes">4. Confirmation: Displays "yES A".</text>
+    <text x="25" y="320" fill="#8b949e" font-size="8.5" class="disp-yes">   Feature: Voter can press BtnL to cancel, or BtnR to cast vote!</text>
+
+    <text x="25" y="303" fill="#f85149" font-size="9" class="disp-done">5. Vote Cast &amp; Lockout: Counter A increments. Display "dOnE".</text>
+    <text x="25" y="320" fill="#8b949e" font-size="8.5" class="disp-done">   Security: Double-voting blocked until Officer presses BtnD.</text>
+
+    <text x="25" y="303" fill="#e3b341" font-size="9" class="disp-res">6. Admin Mode (SW15): Election results readout.</text>
+    <text x="25" y="320" fill="#8b949e" font-size="8.5" class="disp-res">   Press BtnR to cycle candidates: A=2, B=0, C=1, D=0.</text>
+  </g>
+</svg>
